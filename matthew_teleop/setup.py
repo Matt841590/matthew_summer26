@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'teleop = matthew_teleop.matthew_teleop_node:main'
         ],
     },
 )
