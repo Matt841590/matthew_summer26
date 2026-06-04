@@ -31,3 +31,23 @@ a simple package meant to provide basic teleop functionality
 to run: "ros2 run matthew_teleop teleop"  
 
 Ex : root@da15bf37667e:/ros_ws/src/matthew_summer26# ros2 run matthew_teleop teleop
+
+## Mapping 
+
+### Instructions
+
+- open 5 terminals (T1 - T5)
+- In T1 run "ros2 launch kaiaai_bringup physical.launch.py"
+- - this is the package that publishes all of the TF's besides those for map (inhereted from Makerspet)
+
+- In T2 run "ros2 launch nav2_bringup navigation_launch.py"
+- - This starts a pre-built Nav2 navigation stack (TODO: Make my own?)
+
+- In T3 run "ros2 launch slam_toolbox online_async_launch.py"
+- - this is a pre-built configuration of slam_toolbox (TODO: make my own?)
+
+- In T4 run "ros2 run rviz2 rviz2 -d /opt/ros/iron/share/nav2_bringup/rviz/nav2_default_view.rviz"
+- - this is apre-built rViz configuration (TODO: make my own?)
+
+- In T5 run "ros2 run matthew_teleop teleop" 
+- - requires that you are in ros_ws/src/matthew_summer26 and do both colcon build and source install/setup.bash first
