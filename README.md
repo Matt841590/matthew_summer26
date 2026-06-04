@@ -36,7 +36,9 @@ Ex : root@da15bf37667e:/ros_ws/src/matthew_summer26# ros2 run matthew_teleop tel
 
 ### Instructions
 
-- open 5 terminals (T1 - T5)
+info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbox/
+
+- Open 5 terminals (T1 - T5)
 - In T1 run "ros2 launch kaiaai_bringup physical.launch.py"
 - - this is the package that publishes all of the TF's besides those for map (inhereted from Makerspet)
 
@@ -47,7 +49,7 @@ Ex : root@da15bf37667e:/ros_ws/src/matthew_summer26# ros2 run matthew_teleop tel
 - - this is a pre-built configuration of slam_toolbox (TODO: make my own?)
 
 - In T4 run "ros2 run rviz2 rviz2 -d /opt/ros/iron/share/nav2_bringup/rviz/nav2_default_view.rviz"
-- - this is apre-built rViz configuration (TODO: make my own?)
+- - this is a pre-built rViz configuration (TODO: make my own?)
 
 - In T5 run "ros2 run matthew_teleop teleop" 
 - - requires that you are in ros_ws/src/matthew_summer26 and do both colcon build and source install/setup.bash first
