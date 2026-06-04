@@ -117,7 +117,7 @@ class TelopNode(Node):
 
         # - publish the speeds
         msg.linear.x = self.linear_speed
-        msg.angular.z = self.angular_speed
+        msg.angular.z = self.angular_speed * 5
 
         self.twist_publisher.publish(msg)
 

@@ -1,6 +1,6 @@
 # matthew_summer26
 
-## setup instructions
+## Setup instructions
 
 ### VsCode setup
 
@@ -10,13 +10,13 @@
 
 -goto your version control system button on the sidebar, and select "pick a repo" (or whatever) and select "matthew_summer26"
 
-### how to run Makerspet packages
+### How to run Makerspet packages
 
 to run makerspet packages, simply use the commands given from their resources and type them at the root level (at :/#)
 
 Ex : root@da15bf37667e:/# ros2 launch kaiaai_bringup physical.launch.py
 
-### how to run MY packages
+### How to run MY packages
 
 to run My packages, cd to "ros_ws/src/matthew_summer26/" and then run as usual
 

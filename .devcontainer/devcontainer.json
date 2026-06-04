@@ -16,5 +16,7 @@
     "workspaceFolder": "/",
 
     // Optional: Sources your ROS2 environment automatically when a new terminal opens
-    "postCreateCommand": "echo 'source /opt/ros/iron/setup.bash' >> ~/.bashrc && echo 'source /ros_ws/install/setup.bash' >> ~/.bashrc"
+    "postCreateCommand": "bash /ros_ws/src/matthew_summer26/.devcontainer/setup.sh"
 }
+
+// /ros_ws/src/matthew_summer26/.devcontainer/setup.sh
