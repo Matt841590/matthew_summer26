@@ -1,0 +1,8 @@
+# Ignore the entire build, install, and log directories and all their contents
+build/
+install/
+log/
+
+# Optional: Ignore any local build artifacts or hidden cache folders
+.build/
+.catkin_tools/
