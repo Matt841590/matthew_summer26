@@ -5,7 +5,7 @@
 
 https://github.com/makerspet
 
-## frontier_exploration_ros2_iron
+## frontier_exploration_ros2_iron (inside matthew_summer26)
 
 This is my personal fork off of https://github.com/mertgulerx/frontier_exploration_ros2 that fixes some specific issues I was having
 
