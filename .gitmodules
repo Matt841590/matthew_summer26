@@ -1,0 +1,3 @@
+[submodule "frontier_exploration_ros2_iron"]
+	path = frontier_exploration_ros2_iron
+	url = https://github.com/Matt841590/frontier_exploration_ros2_iron.git
