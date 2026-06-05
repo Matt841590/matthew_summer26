@@ -1,5 +1,14 @@
 # matthew_summer26
 
+# SOURCES
+## Everything makerspet (outside of the package matthew_summer26)
+
+https://github.com/makerspet
+
+## frontier_exploration_ros2_iron
+
+This is my personal fork off of https://github.com/mertgulerx/frontier_exploration_ros2 that fixes some specific issues I was having
+
 ## Setup instructions
 
 ### VsCode setup
