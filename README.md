@@ -41,7 +41,7 @@ to run: "ros2 run matthew_teleop teleop"
 
 Ex : root@da15bf37667e:/ros_ws/src/matthew_summer26# ros2 run matthew_teleop teleop
 
-## Mapping 
+## Manual Mapping 
 
 ### Instructions
 
@@ -62,3 +62,10 @@ info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbo
 
 - In T5 run "ros2 run matthew_teleop teleop" 
 - - requires that you are in ros_ws/src/matthew_summer26 and do both colcon build and source install/setup.bash first
+
+## Autonomous Mapping + Exploration
+ T1-T4 are the same
+
+ T5 - /ros_ws/src/matthew_summer26/frontier_exploration_ros2_iron# ros2 launch frontier_exploration_ros2 frontier_explorer.launch.py
+
+ after colcon build and stuff
