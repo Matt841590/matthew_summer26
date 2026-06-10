@@ -69,3 +69,8 @@ info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbo
  T5 - /ros_ws/src/matthew_summer26/frontier_exploration_ros2_iron# ros2 launch frontier_exploration_ros2 frontier_explorer.launch.py
 
  after colcon build and stuff
+
+## MAKERSPET Autonomous Mapping Stack
+- T1: physical bringup (same as above)
+- T2: ros2 launch kaiaai_bringup navigation.launch.py slam:=True
+- T3: ros2 launch explore_lite explore.launch.py
