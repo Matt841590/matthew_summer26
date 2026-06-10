@@ -35,8 +35,8 @@ class TelopNode(Node):
         self.angular_speed = 0.0
 
             # - step sizes
-        self.linear_step = 0.02
-        self.angular_step = 0.04
+        self.linear_step = 0.04
+        self.angular_step = 0.08
     
         # - print operating instrucitons and starting state
         self.get_logger().info('Use w/x to change velocity in the fowrds/back direction')
