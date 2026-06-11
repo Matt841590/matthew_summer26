@@ -51,7 +51,7 @@ info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbo
 - In T1 run "ros2 launch kaiaai_bringup physical.launch.py"
 - - this is the package that publishes all of the TF's besides those for map (inhereted from Makerspet)
 
-- In T2 run "ros2 launch nav2_bringup navigation_launch.py"
+- In T2 run "ros2 launch nav2_bringup navigation_launch.py params_file:=/ros_ws/src/matthew_summer26/nav2_config yaml"
 - - This starts a pre-built Nav2 navigation stack (TODO: Make my own?)
 
 - In T3 run "ros2 launch slam_toolbox online_async_launch.py"
@@ -74,3 +74,17 @@ info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbo
 - T1: physical bringup (same as above)
 - T2: ros2 launch kaiaai_bringup navigation.launch.py slam:=True
 - T3: ros2 launch explore_lite explore.launch.py
+
+## To save a map
+- ros2 run nav2_map_server map_saver_cli -f my_map
+
+## To launch a saved map 
+- ros2 run nav2_map_server map_server --ros-args \
+  -p yaml_filename:=/ros_ws/src/matthew_summer26/maps/baseline_map.yaml \
+  -p topic_name:=map \
+  -p use_sim_time:=false & \
+sleep 2 && \
+ros2 lifecycle set /map_server configure && \
+ros2 lifecycle set /map_server activate
+
+this both calls the map_server and configures it to launch and publish
