@@ -5,8 +5,8 @@
     // Translates your -p, -e, and --name options into VS Code equivalents
     "runArgs": [
         "--name=makerspet",
-        "-p", "192.168.12.153:8888:8888/udp",
-        "-p", "192.168.12.153:4430:4430/tcp",
+        "-p", "10.160.0.153:8888:8888/udp",
+        "-p", "10.160.0.153:4430:4430/tcp",
         "-e", "DISPLAY=host.docker.internal:0.0",
         "-e", "LIBGL_ALWAYS_INDIRECT=0"
     ],

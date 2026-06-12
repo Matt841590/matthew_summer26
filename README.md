@@ -51,7 +51,7 @@ info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbo
 - In T1 run "ros2 launch kaiaai_bringup physical.launch.py"
 - - this is the package that publishes all of the TF's besides those for map (inhereted from Makerspet)
 
-- In T2 run "ros2 launch nav2_bringup navigation_launch.py params_file:=/ros_ws/src/matthew_summer26/nav2_config yaml"
+- In T2 run "ros2 launch nav2_bringup navigation_launch.py params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml"
 - - This starts a pre-built Nav2 navigation stack (TODO: Make my own?)
 
 - In T3 run "ros2 launch slam_toolbox online_async_launch.py"
@@ -78,13 +78,27 @@ info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbo
 ## To save a map
 - ros2 run nav2_map_server map_saver_cli -f my_map
 
-## To launch a saved map 
-- ros2 run nav2_map_server map_server --ros-args \
-  -p yaml_filename:=/ros_ws/src/matthew_summer26/maps/baseline_map.yaml \
-  -p topic_name:=map \
-  -p use_sim_time:=false & \
-sleep 2 && \
-ros2 lifecycle set /map_server configure && \
-ros2 lifecycle set /map_server activate
 
-this both calls the map_server and configures it to launch and publish
+## For GoTo Pose (with extant map)
+- T1: ros2 launch kaiaai_bringup physical.launch.py
+- - This is the pre-built robot bringup
+
+- T2: ros2 launch nav2_bringup localization_launch.py 
+    map:=/ros_ws/src/matthew_summer26/maps/baseline_map.yaml   
+    use_sim_time:=false 
+    params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
+- - This publishes the map and localises the robot in it using AMCL 
+
+- T3: ros2 launch nav2_bringup navigation_launch.py 
+    use_sim_time:=false 
+    params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
+- - This is the basic Nav2 "go to this place from where you are" utility
+
+- T4: ros2 run rviz2 rviz2 -d $(ros2 pkg prefix nav2_bringup)/share/nav2_bringup/rviz/nav2_default_view.rviz 
+- - This is just a RVIZ window
+
+## Initial pose (~beside where I usually sit)
+      x: -0.21503815881548907
+      y: -0.10091090694406177
+
+## 
