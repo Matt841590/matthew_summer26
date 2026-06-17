@@ -28,6 +28,12 @@ echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://package
   | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
 apt-get update
+
+# - Clone, patch, and install the lidar tracking library
+git clone https://github.com/gabe-ochoa/lidar-tracking.git /tmp/lidar-tracking
+sed -i 's/requires-python = ">=3.11"/requires-python = ">=3.10"/' /tmp/lidar-tracking/pyproject.toml
+pip install /tmp/lidar-tracking
+rm -rf /tmp/lidar-tracking
 #------------------------------------------------------------------
 apt install -y ros-iron-rmw-cyclonedds-cpp
 

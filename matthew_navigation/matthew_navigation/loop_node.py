@@ -1,48 +1,101 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionClient
-# - importing message type for initial pose
-from geometry_msgs/msg import PoseWithCovarianceStamped
-# - importing message for goto pose
-from nav2_msgs.action import NavigateToPose
+# - importing message type for initial pose and destinations
+from geometry_msgs.msg import PoseStamped
+# - simplecommander for publishing stuff without race conditions
+from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 
 class LoopPublisher(Node):
     def __init__(self):
         super().__init__("loop_publisher_node")
-        self.intital_pose_publisher = self.create_publisher(PoseWithCovarianceStamped, '/initialpose', 10)
-        self.destination_pose_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+        self.nav = BasicNavigator()
 
-    def publish_inital_pose(self, x, y)
-        msg = PoseWithCovarianceStamped()
+    def publish_inital_pose(self, x, y):
+        # - build the msg object
+        msg = PoseStamped()
 
-        # - setting the frame
+        # - populate the msg object
+        # - populate header
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'map'
-        msg.header.stamp = node.get_clock().now().to_msg()
 
-        # - setting the pose itself
-        msg.pose.pose.position.x = x
-        msg.pose.pose.position.y = y
-        # - TODO: determine if I need to touch orientation
+        # - populate body (position)
+        msg.pose.position.x = x
+        msg.pose.position.y = y
+        msg.pose.position.z = 0.0
 
-        # - setting a basic covarience
-        msg.pose.covariance = [0.0] * 36
-        msg.pose.covariance[0] = 0.25
-        msg.pose.covariance[7] = 0.25
-        msg.pose.covariance[35] = 0.06
+        msg.pose.orientation.x = 0.0
+        msg.pose.orientation.y = 0.0
+        msg.pose.orientation.z = 0.0
+        msg.pose.orientation.w = 1.0
 
-        # - publishing 
-        self.intital_pose_publisher.publish(msg)
+        # - publish the msg object
+        self.get_logger().info(f'Attempting to publish starting point {x}, {y}')
+        self.nav.setInitialPose(msg)
+        self.nav.waitUntilNav2Active()
+        self.get_logger().info(f'Published point {x}, {y}')
 
-    def publish_destination_pose(self, x, y)
-        # - making and populating the goal msg
-        msg = NavigateToPose.Goal()
+    def publish_destination_pose(self, x, y):
+        # - build the msg object
+        msg = PoseStamped()
 
+        # - populate the msg object
+        # - populate header
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = 'map'
+
+        # - populate body (position)
+        msg.pose.position.x = x
+        msg.pose.position.y = y
+        msg.pose.position.z = 0.0
+
+        msg.pose.orientation.x = 0.0
+        msg.pose.orientation.y = 0.0
+        msg.pose.orientation.z = 0.0
+        msg.pose.orientation.w = 1.0
+
+        # - publish the msg object
+        self.get_logger().info(f'Attempting to publish destination point {x}, {y}')
+        self.nav.goToPose(msg)
+        while not self.nav.isTaskComplete():
+            feedback = self.nav.getFeedback()
+            # - self.get_logger().info(f'Feedback: {feedback}')
+        # - self.get_logger().info(f'Published point {x}, {y} or failed trying, see feedback')
+
+        result = self.nav.getResult()
+        if result == TaskResult.SUCCEEDED:
+            self.get_logger().info('Goal succeeded!')
+        elif result == TaskResult.CANCELED:
+            self.get_logger().info('Goal was canceled!')
+        elif result == TaskResult.FAILED:
+            self.get_logger().info('Goal failed!')
 
 # - main
 def main(args=None):
-    rclpy.__init__(args=args):
+    rclpy.init(args=args)
     loop_publisher = LoopPublisher()
-    rclpy.spin(loop_publisher)
+
+    # - list of poses to iterate through
+    # - 0: by couch
+    # - 1: by back wall
+    # - 2: by trunk
+    # - 3: by closet
+    # - 4: NEW by oven
+    # - 5: NEW by barstool
+    # - 6: NEW on problematic rug
+    # - 7: origin
+    x_list = [2.30066, 3.432117, 2.6698, -1.8398, -3.994846, -3.85524, -1.74305, -0.745320, 0.330082, -0.1110]
+    y_list = [-0.12961, 2.647237, 6.3336, 2.10395, 2.5412556, 0.589211, 0.299801, 2.172579, 1.843161, 0.021468]
+
+    # - publishing intital pose
+    loop_publisher.publish_inital_pose(-0.1110, 0.021468)
+
+    # - publishing destination points sequentially
+    for i in range(len(x_list)):
+        # 1. Send the goal and wait for Nav2 to accept it
+        goal_future = loop_publisher.publish_destination_pose(x_list[i], y_list[i])
+
+    rclpy.shutdown()
 
 # - entry point to main
 if __name__ == '__main__':

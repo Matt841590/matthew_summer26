@@ -79,26 +79,35 @@ info from: https://roboticsbackend.com/ros2-nav2-generate-a-map-with-slam_toolbo
 - ros2 run nav2_map_server map_saver_cli -f my_map
 
 
-## For GoTo Pose (with extant map)
+## For GoTo Pose (with extant map, assumes it lives in matthew_summer26/maps)
 - T1: ros2 launch kaiaai_bringup physical.launch.py
 - - This is the pre-built robot bringup
 
-- T2: ros2 launch nav2_bringup localization_launch.py 
-    map:=/ros_ws/src/matthew_summer26/maps/baseline_map.yaml   
-    use_sim_time:=false 
+- T2: ros2 launch nav2_bringup localization_launch.py \
+    map:=/ros_ws/src/matthew_summer26/maps/baseline_map.yaml \
+    use_sim_time:=false \
     params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
 - - This publishes the map and localises the robot in it using AMCL 
 
-- T3: ros2 launch nav2_bringup navigation_launch.py 
-    use_sim_time:=false 
+- T3: ros2 launch nav2_bringup navigation_launch.py \
+    use_sim_time:=false \
     params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
 - - This is the basic Nav2 "go to this place from where you are" utility
 
 - T4: ros2 run rviz2 rviz2 -d $(ros2 pkg prefix nav2_bringup)/share/nav2_bringup/rviz/nav2_default_view.rviz 
 - - This is just a RVIZ window
 
-## Initial pose (~beside where I usually sit)
-      x: -0.21503815881548907
-      y: -0.10091090694406177
+- T5: ros2 run matthew_navigation loop 
+- - this is my custom "make a loop, hitting all of these points" utility
+- - must do colcon build and source install/setup.bash in matthew_naviagtion
 
-## 
+## Initial pose (~beside where I usually sit)
+    x: -0.1110
+
+    y: 0.021468
+
+    to get abother point: ros2 topic echo /amcl_pose --once 
+
+## For movement detection (chasing?)
+ - T5: ros2 run matthew_navigation follow
+ - - This is an implementation of https://github.com/gabe-ochoa/lidar-tracking that should allow me to follow
