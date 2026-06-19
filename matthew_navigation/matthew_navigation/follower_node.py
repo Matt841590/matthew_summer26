@@ -28,7 +28,10 @@ class MovementFollowerNode(Node):
             QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
         )
 
-        self.scan_subscriber
+        self.scan_subscriber # - so it doesnt scream about unused variables
+
+        # - holder for lidar values, first is the object id and second is the displacements it has been in the past
+        self.objects_list[][]
 
     # - init pose 
     def publish_inital_pose(self, x, y):
@@ -117,13 +120,7 @@ class MovementFollowerNode(Node):
         # - printing what I found
         for obj in frame.objects:
             self.get_logger().info(f"Object #{obj.object_id} at ({obj.centroid.x:.0f}, {obj.centroid.y:.0f})mm")
-            self.is_moving(frame, obj, obj.object_id)
-
-            # Get trajectory for a specific object
-            # if obj.object_id == 1:
-            #     trail = self.engine.get_trajectory(obj.object_id)
-            #     self.get_logger().info(f'Trail/Trajectory: {trail}')
-
+            self.is_moving(frame, obj, obj.object_id, self.objects_list)
 
         # - for object in frame
             # - while object is moving (is_moving returns true)
@@ -177,18 +174,36 @@ class MovementFollowerNode(Node):
         average_dist = self.calculate_average_dist(ema)
 
         # - informing user
-        self.get_logger().info(f'Object {object_id} has an average distance moved (accounting for noise) of {round((average_dist[0]+average_dist[1])/2,3)},')
+        self.get_logger().info(f'Object {object_id} has moved {round((average_dist[0]+average_dist[1])/2,3)} in the last cycle')
 
-        # - comparing to old value
-        # - TODO: this!
-        # - store new dist value
-        #objects_list[object_id] = (average_dist[0]+average_dist[1])/2
+        # - saving true value of average movement
+        current_movment = (average_dist[0]+average_dist[1])/2
 
-        # - TODO: keep track of how much the object has been moving and use that to dynamically scale what is considered "movement"
-        # - TODO: once I know how the ema looks, decide if something is moving
+        # - extract average past movment from object_list with empty list safety
+        if len(object_list) == 0 or len(object_list[object_id]) == 0:
+            past_movment = 0.0
+        else
+            past_movment = sum(object_list[object_id]) / len(object_list[object_id])
 
-        
+        # - adding current movement
+        object_list[object_id].append(current_movment)
 
+        # - informing the user
+        self.get_logger().info(f'Object {object_id} has an average past movement of {past_movment}')
+
+        # - returning false if there are less than 3 scans
+        if len(object_list[object_id] < 3):
+            self.get_logger().info(f"Less than 3 scans for onbject {object_id}")
+            return false
+
+        # - if current > 1.5*past movment, then I think it is moving
+        if (current_movment > 1.5 * past_movment):
+            self.get_logger().info(f"Object {object_id} has moved!")
+            return true
+        else:
+            return false
+
+# - main
 def main(args=None):
     rclpy.init(args=args)
     movement_follower_node = MovementFollowerNode()
