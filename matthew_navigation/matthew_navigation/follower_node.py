@@ -1,4 +1,6 @@
 import rclpy
+import math
+import os
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 # - importing message type for initial pose and destinations
@@ -9,6 +11,9 @@ from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 import numpy as np
 from sensor_msgs.msg import LaserScan
 from lidar_tracker import TrackingEngine
+# - importing stuff so I can visualize points
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Point
 
 class MovementFollowerNode(Node):
     def __init__(self):
@@ -18,7 +23,14 @@ class MovementFollowerNode(Node):
         self.nav = BasicNavigator()
 
         # - tracking engine
-        self.engine = TrackingEngine()
+        self.engine = TrackingEngine(
+            cluster_eps_mm=100.0,       # Tighter grouping radius
+            cluster_min_samples=6,      # Requires denser point clusters
+            max_cluster_radius_mm=300.0 # Rejects tracking massive objects/walls
+        )
+
+        # - point publisher
+        self.point_publisher = self.create_publisher(Marker, 'visualization_marker', 10)
 
         # - subscriber to /scan
         self.scan_subscriber = self.create_subscription(
@@ -31,7 +43,38 @@ class MovementFollowerNode(Node):
         self.scan_subscriber # - so it doesnt scream about unused variables
 
         # - holder for lidar values, first is the object id and second is the displacements it has been in the past
-        self.objects_list[][]
+        self.object_list = []
+
+    def publish_point(self,x,y):
+        marker = Marker()
+
+        marker.header.frame_id = "base_link"   # or "odom"
+        marker.header.stamp = self.get_clock().now().to_msg()
+
+        marker.ns = "points"
+        marker.id = 0
+
+        marker.type = Marker.SPHERE   # or CUBE, POINTS, etc.
+        marker.action = Marker.ADD
+
+        # your x,y point
+        marker.pose.position.x = x / 1000
+        marker.pose.position.y = y / 1000
+        marker.pose.position.z = 0.0
+
+        marker.pose.orientation.w = 1.0
+
+        marker.scale.x = 0.2
+        marker.scale.y = 0.2
+        marker.scale.z = 0.2
+
+        marker.color.r = 1.0
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+        marker.color.a = 1.0
+
+        self.point_publisher.publish(marker)
+
 
     # - init pose 
     def publish_inital_pose(self, x, y):
@@ -95,113 +138,90 @@ class MovementFollowerNode(Node):
     
     # - subscriber to /scan callabck
     def scan_subscriber_callabck(self, msg):
-        #self.get_logger().info(f'Got Lidar scan!')
         # - capture distances
         distances = np.array(msg.ranges)
-        # - capture anfles
-        angles = msg.angle_min + np.arange(len(distances)) * msg.angle_increment
+        # - capture angles (in RADIANS from ROS)
+        angles_rad = msg.angle_min + np.arange(len(distances)) * msg.angle_increment
 
-        # - filtering and changing units of measure
-        valid_mask = (distances > 0.0) & (distances > msg.range_min) & (distances < msg.range_max)
+        max_tracking_distance = 1.5  # Only look at things within 1.5 meters
+        
+        # - updated filtering criteria using your manual cutoff
+        valid_mask = (distances > msg.range_min) & (distances < max_tracking_distance) & np.isfinite(distances)
         distances = distances[valid_mask]
-        angles = angles[valid_mask]
+        angles_rad = angles_rad[valid_mask]
+        
         distances_mm = distances * 1000.0
 
-        # - zip them together
-        angle_dist_tuples = np.column_stack((angles, distances_mm))
+        # 1. CONVERT RADIANS TO DEGREES
+        angles_deg = np.degrees(angles_rad)
 
-        # - checking to be sure I didnt discard everything
+        # 2. Zip them together as (angle_deg, distance_mm)
+        angle_dist_tuples = np.column_stack((angles_deg, distances_mm))
+
         if len(angle_dist_tuples) == 0:
             self.get_logger().warn("All points filtered out this frame!")
+            return
 
-        # - get frames
+        # 3. Pass to the tracking engine
         frame = self.engine.process_scan(angle_dist_tuples)
+        
 
         # - printing what I found
         for obj in frame.objects:
-            self.get_logger().info(f"Object #{obj.object_id} at ({obj.centroid.x:.0f}, {obj.centroid.y:.0f})mm")
-            self.is_moving(frame, obj, obj.object_id, self.objects_list)
+            self.get_logger().info(f"Engine detected {len(frame.objects)} unique objects this frame.")
+            while len(self.object_list) <= obj.object_id:
+                self.object_list.append([])
+
+            self.get_logger().info(f"Object {obj.object_id} now at ({round(obj.centroid.x,1)}, {round(obj.centroid.y)})mm")
+            
+            # The library outputs centroids in Cartesian mm, so dividing by 1000 here is still correct for RViz
+            self.publish_point(obj.centroid.x, obj.centroid.y)
+            
+            del_x, del_y = self.compute_delta(frame, obj, self.object_list)
+            self.get_logger().info(f"Object {obj.object_id} delta: ({round(del_x,1)}, {round(del_y,1)})mm")
+
+        # os.system("clear")
+
 
         # - for object in frame
             # - while object is moving (is_moving returns true)
                 # - follow object
 
-    # - I did not make this, stole it from somewhere
-    def calculate_ema(self, data, alpha):
-        # alpha is the smoothing factor (between 0 and 1)
-        # Higher alpha = reacts faster to new data; Lower alpha = smoother
-        x_ema = np.zeros(len(data))
-        y_ema = np.zeros(len(data))
-        x_ema[0] = data[0][0] # Initialize first element
-        y_ema[0] = data[0][1]
+
+    # - determines the average (x,y) of an object
+    def calculate_average_position(self, points):
+        average_x = 0.0
+        average_y = 0.0
+        num_points = 0
+        for point in points:
+            average_x += point[0]
+            average_y += point[1]
+            num_points +=1
         
-        for i in range(1, len(data)):
-            x_ema[i] = alpha * data[i][0] + (1 - alpha) * x_ema[i-1]
-            y_ema[i] = alpha * data[i][1] + (1 - alpha) * y_ema[i-1]
-        ema = np.column_stack((x_ema, y_ema))
-        return ema
-
-    # - also stole parts of this
-    def calculate_average_dist(self, ema):
-        x_ema = ema[:, 0]  # Grab every row, but only column 0 (X)
-        y_ema = ema[:, 1]  # Grab every row, but only column 1 (Y)
-        x_avg = x_ema[0]- (np.sum(x_ema) / len(x_ema))
-        y_avg = y_ema[0] - (np.sum(y_ema) / len(y_ema))
-        return (x_avg, y_avg)
+        return (average_x/num_points, average_y/num_points)
+        
 
 
-    def is_moving(self, frame, object, object_id):
-        # - setting alpha (soothing factor)
-        # - higher -> reacts faster, lower -> smoother
-        alpha = 0.05
 
-        # - extract trail
-        trail = self.engine.get_trajectory(object.object_id)
+    def compute_delta(self, frame, object, object_list):
+        # - append current location (I know this is bad, dont care)
+        object_list[object.object_id].append((object.centroid.x,object.centroid.y))
 
-        # - extract # points <= 10
-        if len(trail) < 10:
-            num_points = len(trail)
-        else:
-            num_points = 10
+        # - compute average position based on previous timestamps in (x,y)
+        hist_x, hist_y = self.calculate_average_position(object_list[object.object_id])
+        #self.get_logger().info(f'object {object.object_id} was at ({round(hist_x,1)}, {round(hist_y,1)})')
 
-        # - extract num_points 
-        relevant_points = np.zeros((num_points, 2))
-        for i in range(num_points):
-            relevant_points[i] = (trail[i - num_points].x,trail[i - num_points].y)
+        # - compute current position (in x,y)
+        # - obj.centroid.x:.0f}, {obj.centroid.y:.0f (from above code)
 
-        # - calculate and judge ema
-        ema = self.calculate_ema(relevant_points, alpha)
-        average_dist = self.calculate_average_dist(ema)
-
-        # - informing user
-        self.get_logger().info(f'Object {object_id} has moved {round((average_dist[0]+average_dist[1])/2,3)} in the last cycle')
-
-        # - saving true value of average movement
-        current_movment = (average_dist[0]+average_dist[1])/2
-
-        # - extract average past movment from object_list with empty list safety
-        if len(object_list) == 0 or len(object_list[object_id]) == 0:
-            past_movment = 0.0
-        else
-            past_movment = sum(object_list[object_id]) / len(object_list[object_id])
-
-        # - adding current movement
-        object_list[object_id].append(current_movment)
-
-        # - informing the user
-        self.get_logger().info(f'Object {object_id} has an average past movement of {past_movment}')
-
-        # - returning false if there are less than 3 scans
-        if len(object_list[object_id] < 3):
-            self.get_logger().info(f"Less than 3 scans for onbject {object_id}")
-            return false
-
-        # - if current > 1.5*past movment, then I think it is moving
-        if (current_movment > 1.5 * past_movment):
-            self.get_logger().info(f"Object {object_id} has moved!")
-            return true
-        else:
-            return false
+        # - determine distance between historic and current position
+        x_diff = hist_x - object.centroid.x
+        y_diff = hist_y - object.centroid.y 
+        #self.get_logger().info(f'object {object.object_id} delta: ({round(x_diff,1)}, {round(y_diff,1)})')
+        distance = math.sqrt(x_diff**2 + y_diff**2)
+        #self.get_logger().info(f'object {object.object_id} has moved ({round(distance,1)})')
+        return (x_diff, y_diff)
+        
 
 # - main
 def main(args=None):

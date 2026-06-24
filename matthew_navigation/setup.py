@@ -21,7 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'loop = matthew_navigation.loop_node:main',
-            'follow = matthew_navigation.follower_node:main'
+            'follow = matthew_navigation.simple_follower:main'
         ],
     },
 )

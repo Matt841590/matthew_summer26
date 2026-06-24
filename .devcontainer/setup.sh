@@ -6,6 +6,7 @@ apt-get install -y ros-iron-navigation2 ros-iron-nav2-bringup ros-iron-slam-tool
 
 echo "Installing Python packages..."
 # - pip3 install ...
+pip install -U scikit-learn
 
 echo "Setting up ROS environment..."
 echo 'source /opt/ros/iron/setup.bash' >> ~/.bashrc
@@ -38,5 +39,6 @@ rm -rf /tmp/lidar-tracking
 apt install -y ros-iron-rmw-cyclonedds-cpp
 
 echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' >> ~/.bashrc
+
 
 echo "Setup complete."
