@@ -9,7 +9,7 @@ from geometry_msgs.msg import PoseStamped
 # - simplecommander for publishing stuff without race conditions
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 # - importing stuff so I can visualize points
-from visualization_msgs.msg import Marker
+from visualization_msgs.msg import Marker, MarkerArray
 from builtin_interfaces.msg import Duration
 from geometry_msgs.msg import Point
 # - importing DBScan to sort points into clusters
@@ -24,7 +24,7 @@ class SimpleFollower(Node):
         self.nav = BasicNavigator()
 
         # - point publisher
-        self.point_publisher = self.create_publisher(Marker, 'visualization_marker', 10)
+        self.point_publisher = self.create_publisher(MarkerArray, 'visualization_marker_array', 10)
 
         # - subscriber to /scan
         self.scan_subscriber = self.create_subscription(
@@ -106,7 +106,7 @@ class SimpleFollower(Node):
             self.get_logger().info('Goal failed!')
 
     # - publishes each centroid as a Marker in Rviz so I can see them :)
-    def publish_centroid(self, id, centroid):
+    def publish_centroid(self, object_holder):
         # marker = Marker()
 
         # marker.header.frame_id = "base_link"   # or "odom"
@@ -137,34 +137,41 @@ class SimpleFollower(Node):
         # marker.color.b = 0.0
         # marker.color.a = 1.0
 
-        # Text marker
-        text = Marker()
-        text.header.frame_id = "base_link"
-        text.ns = "object_labels"
-        text.id = id
-        text.type = Marker.TEXT_VIEW_FACING
-        text.action = Marker.ADD
+        # - text array to publish at the end
+        text_array = MarkerArray()
 
-        # Lifetime of 3 seconds
-        text.lifetime = Duration(sec=5, nanosec=0)
+        for key,centroid in object_holder.items():
+            # Text marker
+            text = Marker()
+            text.header.frame_id = "base_link"
+            text.ns = "object_labels"
+            text.id = key
+            text.type = Marker.TEXT_VIEW_FACING
+            text.action = Marker.ADD
 
-        text.pose.position.x = -centroid[0]
-        text.pose.position.y = centroid[1]
-        text.pose.position.z = 0.3  # above sphere
+            # Lifetime of 3 seconds
+            text.lifetime = Duration(sec=5, nanosec=0)
 
-        text.scale.z = 0.20  # text height in meters
+            text.pose.position.x = -centroid[0]
+            text.pose.position.y = centroid[1]
+            text.pose.position.z = 0.3  # above sphere
 
-        text.pose.orientation.w = 1.0
+            text.scale.z = 0.20  # text height in meters
 
-        text.color.r = 0.0
-        text.color.g = 0.0
-        text.color.b = 1.0
-        text.color.a = 1.0
+            text.pose.orientation.w = 1.0
 
-        text.text = str(id)
+            text.color.r = 0.0
+            text.color.g = 0.0
+            text.color.b = 1.0
+            text.color.a = 1.0
+
+            text.text = str(key)
+
+            # - appending
+            text_array.markers.append(text)
 
         #self.point_publisher.publish(marker)
-        self.point_publisher.publish(text)
+        self.point_publisher.publish(text_array)
     
     # - subscriber to /scan callabck
     def scan_subscriber_callabck(self, msg):
@@ -210,7 +217,7 @@ class SimpleFollower(Node):
             if self.first:
                 self.object_holder[self.num_objects] = centroid
                 self.num_objects += 1
-                #self.get_logger().info(f'New point (setup): point number {self.num_objects} at {centroid}')
+                self.get_logger().info(f'New point (setup): point number {self.num_objects} at {centroid}')
                 
             # - comparing previous centroids
             else:
@@ -234,15 +241,16 @@ class SimpleFollower(Node):
                 # - updating an old item
                 else:
                     self.object_holder[new_key] = centroid
-                    self.get_logger().info(f'Updated point: {new_key} at {centroid}')
+                    #self.get_logger().info(f'Updated point: {new_key} at {centroid}')
 
         # - making sure it only goes through first time setup once
         self.first = False
 
         # - publishing visual points to represent the centroids
-        for i in range(len(self.object_holder)):
-            self.get_logger().info(f'Publishing RViz marker for point {i} at {self.object_holder[i]}')
-            self.publish_centroid(i, self.object_holder[i])
+        # for i in range(len(self.object_holder)):
+        #     self.get_logger().info(f'Publishing RViz marker for point {i} at {self.object_holder[i]}')
+        #     self.publish_centroid(i, self.object_holder[i])
+        self.publish_centroid(self.object_holder)
 
     
 # - main
