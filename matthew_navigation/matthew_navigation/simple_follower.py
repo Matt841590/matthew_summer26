@@ -1,6 +1,7 @@
 import rclpy
 import math
 import os
+import numpy as np
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 # - importing message type for initial pose and destinations
@@ -9,9 +10,11 @@ from geometry_msgs.msg import PoseStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 # - importing stuff so I can visualize points
 from visualization_msgs.msg import Marker
+from builtin_interfaces.msg import Duration
 from geometry_msgs.msg import Point
 # - importing DBScan to sort points into clusters
 from sklearn.cluster import DBSCAN
+from sensor_msgs.msg import LaserScan
 
 class SimpleFollower(Node):
     def __init__(self):
@@ -35,7 +38,7 @@ class SimpleFollower(Node):
         self.object_holder = {}
 
         # - distance something has to be inside of to be considered a match
-        self.max_dist = 0.15
+        self.max_dist = 0.5
 
         # - misc stuff
         self.first = True
@@ -104,39 +107,69 @@ class SimpleFollower(Node):
 
     # - publishes each centroid as a Marker in Rviz so I can see them :)
     def publish_centroid(self, id, centroid):
-        marker = Marker()
+        # marker = Marker()
 
-        marker.header.frame_id = "base_link"   # or "odom"
-        marker.header.stamp = self.get_clock().now().to_msg()
+        # marker.header.frame_id = "base_link"   # or "odom"
+        # marker.header.stamp = self.get_clock().now().to_msg()
 
-        marker.ns = "points"
-        marker.id = id
+        # # Lifetime of 3 seconds
+        # marker.lifetime = Duration(sec=5, nanosec=0)
 
-        marker.type = Marker.SPHERE   # or CUBE, POINTS, etc.
-        marker.action = Marker.ADD
+        # marker.ns = "points"
+        # marker.id = id
 
-        # your x,y point
-        marker.pose.position.x = centroid[0]
-        marker.pose.position.y = centroid[1]
-        marker.pose.position.z = 0.0
+        # marker.type = Marker.SPHERE   # or CUBE, POINTS, etc.
+        # marker.action = Marker.ADD
 
-        marker.pose.orientation.w = 1.0
+        # # your x,y point
+        # marker.pose.position.x = -centroid[0]
+        # marker.pose.position.y = centroid[1]
+        # marker.pose.position.z = 0.0
 
-        marker.scale.x = 0.2
-        marker.scale.y = 0.2
-        marker.scale.z = 0.2
+        # marker.pose.orientation.w = 1.0
 
-        marker.color.r = 1.0
-        marker.color.g = 0.0
-        marker.color.b = 0.0
-        marker.color.a = 1.0
+        # marker.scale.x = 0.2
+        # marker.scale.y = 0.2
+        # marker.scale.z = 0.2
 
-        self.point_publisher.publish(marker)
+        # marker.color.r = 1.0
+        # marker.color.g = 0.0
+        # marker.color.b = 0.0
+        # marker.color.a = 1.0
+
+        # Text marker
+        text = Marker()
+        text.header.frame_id = "base_link"
+        text.ns = "object_labels"
+        text.id = id
+        text.type = Marker.TEXT_VIEW_FACING
+        text.action = Marker.ADD
+
+        # Lifetime of 3 seconds
+        text.lifetime = Duration(sec=5, nanosec=0)
+
+        text.pose.position.x = -centroid[0]
+        text.pose.position.y = centroid[1]
+        text.pose.position.z = 0.3  # above sphere
+
+        text.scale.z = 0.20  # text height in meters
+
+        text.pose.orientation.w = 1.0
+
+        text.color.r = 0.0
+        text.color.g = 0.0
+        text.color.b = 1.0
+        text.color.a = 1.0
+
+        text.text = str(id)
+
+        #self.point_publisher.publish(marker)
+        self.point_publisher.publish(text)
     
     # - subscriber to /scan callabck
     def scan_subscriber_callabck(self, msg):
         # - capture the distances and angles
-        distances = np.array(msg.distances)
+        distances = np.array(msg.ranges)
         angles_rad = msg.angle_min + np.arange(len(distances)) * msg.angle_increment
 
         # - filter out points that are too far
@@ -157,7 +190,7 @@ class SimpleFollower(Node):
         points = np.column_stack((x_m, y_m))
 
         # - use DBScan to sort them into objects
-        self.get_logger().info('Running DBScan on points')
+        #self.get_logger().info('Running DBScan on points')
         db = DBSCAN(eps=0.12, min_samples=5).fit(points)
         labels = db.labels_
 
@@ -177,7 +210,7 @@ class SimpleFollower(Node):
             if self.first:
                 self.object_holder[self.num_objects] = centroid
                 self.num_objects += 1
-                self.get_logger().info(f'New point (setup): point number {self.num_objects} at {centroid}')
+                #self.get_logger().info(f'New point (setup): point number {self.num_objects} at {centroid}')
                 
             # - comparing previous centroids
             else:
@@ -185,7 +218,7 @@ class SimpleFollower(Node):
                 best_distance = 999999.99999
 
                 # - determining min distance
-                for key, value in self.object_holder:
+                for key, value in self.object_holder.items():
                     new_distance = math.sqrt((value[0]-centroid[0])**2 + (value[1]-centroid[1])**2)
 
                     if new_distance < best_distance:
@@ -193,10 +226,10 @@ class SimpleFollower(Node):
                         new_key = key
 
                 # - adding a new item
-                if new_key == -1 or new_key >= self.max_dist:
+                if new_key == -1 or best_distance >= self.max_dist:
                     self.object_holder[self.num_objects] = centroid
                     self.get_logger().info(f'New point (runtime): point number {self.num_objects} at {centroid}')
-                    num_objects += 1
+                    self.num_objects += 1
                 
                 # - updating an old item
                 else:
@@ -207,8 +240,9 @@ class SimpleFollower(Node):
         self.first = False
 
         # - publishing visual points to represent the centroids
-        for i in range(len(object_holder)):
-            self.publish_centroid(i, object_holder[i])
+        for i in range(len(self.object_holder)):
+            self.get_logger().info(f'Publishing RViz marker for point {i} at {self.object_holder[i]}')
+            self.publish_centroid(i, self.object_holder[i])
 
     
 # - main
