@@ -37,8 +37,17 @@ class SimpleFollower(Node):
         # - dict to hold (x,y) values of objects that i know of
         self.object_holder = {}
 
+        # - dict to hold previous known position
+        self.previous_position_holder = {}
+
+        # - average displacement holder
+        self.average_dispacment_holder = {}
+
+        # - holder to track if an object is moving
+        self.is_moving_holder = {}
+
         # - distance something has to be inside of to be considered a match
-        self.max_dist = 0.5
+        self.max_dist = 0.4
 
         # - misc stuff
         self.first = True
@@ -160,10 +169,24 @@ class SimpleFollower(Node):
 
             text.pose.orientation.w = 1.0
 
-            text.color.r = 0.0
-            text.color.g = 0.0
-            text.color.b = 1.0
-            text.color.a = 1.0
+            # - compute distance to change color of things that are "moving"
+            # x_comp = ((centroid[0] - self.previous_position_holder[key][0])**2)
+            # y_comp = ((centroid[1] - self.previous_position_holder[key][1])**2)
+            # distance = math.sqrt(x_comp + y_comp)
+
+            # - if displacment big enough, change color
+            if self.average_dispacment_holder[key] > 0.01:
+                self.is_moving_holder[key] = True
+                text.color.r = 0.0
+                text.color.g = 1.0
+                text.color.b = 0.0
+                text.color.a = 1.0
+            else:
+                self.is_moving_holder[key] = False
+                text.color.r = 0.0
+                text.color.g = 0.0
+                text.color.b = 1.0
+                text.color.a = 1.0
 
             text.text = str(key)
 
@@ -180,7 +203,7 @@ class SimpleFollower(Node):
         angles_rad = msg.angle_min + np.arange(len(distances)) * msg.angle_increment
 
         # - filter out points that are too far
-        max_tracking_distance = 1.5 
+        max_tracking_distance = 0.75 
         valid_mask = (distances > msg.range_min) & (distances < max_tracking_distance) & np.isfinite(distances)
         
         distances = distances[valid_mask]
@@ -216,6 +239,9 @@ class SimpleFollower(Node):
             # - first time, adding all of the centroids
             if self.first:
                 self.object_holder[self.num_objects] = centroid
+                self.previous_position_holder[self.num_objects] = centroid
+                self.average_dispacment_holder[self.num_objects] = 0.0
+                self.is_moving_holder[self.num_objects] = False
                 self.num_objects += 1
                 self.get_logger().info(f'New point (setup): point number {self.num_objects} at {centroid}')
                 
@@ -235,12 +261,25 @@ class SimpleFollower(Node):
                 # - adding a new item
                 if new_key == -1 or best_distance >= self.max_dist:
                     self.object_holder[self.num_objects] = centroid
+                    self.previous_position_holder[self.num_objects] = centroid
+                    self.average_dispacment_holder[self.num_objects] = 0.0
+                    self.is_moving_holder[self.num_objects] = False
                     self.get_logger().info(f'New point (runtime): point number {self.num_objects} at {centroid}')
                     self.num_objects += 1
                 
                 # - updating an old item
                 else:
+                    self.previous_position_holder[new_key] = self.object_holder[new_key]
                     self.object_holder[new_key] = centroid
+
+                    # - computing the distance between the previous point and the current one
+                    x_disp = self.object_holder[new_key][0] - self.previous_position_holder[new_key][0]
+                    y_disp = self.object_holder[new_key][1] - self.previous_position_holder[new_key][1]
+                    distance = math.sqrt(x_disp**2 + y_disp**2)
+
+                    # - averaging with the previous displacment with an 80/20 preference to the old
+                    self.average_dispacment_holder[new_key] = (0.8 * self.average_dispacment_holder[new_key] + 0.2 * distance)
+                    #self.get_logger().info(f'Updated point: {new_key} with displacment {(self.average_dispacment_holder[new_key] + distance) / 2}')
                     #self.get_logger().info(f'Updated point: {new_key} at {centroid}')
 
         # - making sure it only goes through first time setup once
@@ -251,6 +290,22 @@ class SimpleFollower(Node):
         #     self.get_logger().info(f'Publishing RViz marker for point {i} at {self.object_holder[i]}')
         #     self.publish_centroid(i, self.object_holder[i])
         self.publish_centroid(self.object_holder)
+
+        # - determining the number of moving objects
+        true_count = 0
+        moving_object_index = -1
+        for key in self.object_holder.keys():
+            if self.is_moving_holder[key] == True:
+                true_count += 1
+                moving_object_index = key
+        
+        if true_count == 1:
+            self.get_logger().info(f'object {moving_object_index} is moving!')
+        elif true_count > 1:
+            self.get_logger().info(f'too much movement!')
+
+        
+
 
     
 # - main
