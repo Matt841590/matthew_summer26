@@ -299,10 +299,18 @@ class SimpleFollower(Node):
                 true_count += 1
                 moving_object_index = key
         
+        # - if only one thing is moving, follow it!
         if true_count == 1:
             self.get_logger().info(f'object {moving_object_index} is moving!')
+            self.publish_destination_pose(self.object_holder[moving_object_index][0],self.object_holder[moving_object_index][1])
+
+        # - else, freeze and print an error!
         elif true_count > 1:
             self.get_logger().info(f'too much movement!')
+
+
+        # - TODO: set all objects in the map frame, not the base_link frame
+        # - TODO: compensate for robot moving such that when it moves it doesnt think all of the objects are moving
 
         
 
