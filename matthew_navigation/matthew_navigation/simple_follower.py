@@ -4,6 +4,7 @@ import os
 import numpy as np
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
+from nav_msgs.msg import Odometry
 # - importing message type for initial pose and destinations
 from geometry_msgs.msg import PoseStamped
 # - simplecommander for publishing stuff without race conditions
@@ -15,6 +16,10 @@ from geometry_msgs.msg import Point
 # - importing DBScan to sort points into clusters
 from sklearn.cluster import DBSCAN
 from sensor_msgs.msg import LaserScan
+# - tf stuff to chnage frames
+import tf2_ros
+from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import PoseStamped
 
 class SimpleFollower(Node):
     def __init__(self):
@@ -34,14 +39,33 @@ class SimpleFollower(Node):
             QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
         )
 
+        # - subscriber to /odom
+        self.odom_subscriber = self.create_subscription(
+            Odometry,
+            "/odom",
+            self.odom_subscriber_callabck,
+            QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
+        )  
+
+        # - odometry related things
+        self.new_odom = False
+        self.no_wait = False
+        self.robot_position = Odometry()
+
         # - dict to hold (x,y) values of objects that i know of
         self.object_holder = {}
 
         # - dict to hold previous known position
         self.previous_position_holder = {}
 
+        # - dict to hold number of frames an object has been missed
+        self.missed_frames = {}
+
         # - average displacement holder
         self.average_dispacment_holder = {}
+
+        # - set of ID's that have had an object match to them
+        self.matched_ids = set()
 
         # - holder to track if an object is moving
         self.is_moving_holder = {}
@@ -49,9 +73,28 @@ class SimpleFollower(Node):
         # - distance something has to be inside of to be considered a match
         self.max_dist = 0.4
 
+        # - tf stuff
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+
         # - misc stuff
         self.first = True
         self.num_objects = 0
+
+
+    def odom_subscriber_callabck(self, msg):
+        # - populating robot_position
+        self.robot_position.pose.pose.position.x = msg.pose.pose.position.x
+        self.robot_position.pose.pose.position.y = msg.pose.pose.position.y
+        self.robot_position.pose.pose.position.z = msg.pose.pose.position.z
+
+        self.robot_position.pose.pose.orientation.x = msg.pose.pose.orientation.x
+        self.robot_position.pose.pose.orientation.y = msg.pose.pose.orientation.y
+        self.robot_position.pose.pose.orientation.z = msg.pose.pose.orientation.z
+        self.robot_position.pose.pose.orientation.w = msg.pose.pose.orientation.w
+        # - updating condition boolean
+        self.new_odom = True
+        self.no_wait = True
 
 
     # - init pose 
@@ -145,14 +188,25 @@ class SimpleFollower(Node):
         # marker.color.g = 0.0
         # marker.color.b = 0.0
         # marker.color.a = 1.0
+        if not self.new_odom:
+            if not self.no_wait:
+                self.get_logger().info(f'/scan publisher is waiting on /odom data')
+                self.no_wait = True
+                return
+            else:
+                return
 
         # - text array to publish at the end
         text_array = MarkerArray()
 
         for key,centroid in object_holder.items():
+
+            if key not in self.matched_ids:
+                continue
+
             # Text marker
             text = Marker()
-            text.header.frame_id = "base_link"
+            text.header.frame_id = "map"
             text.ns = "object_labels"
             text.id = key
             text.type = Marker.TEXT_VIEW_FACING
@@ -161,9 +215,14 @@ class SimpleFollower(Node):
             # Lifetime of 3 seconds
             text.lifetime = Duration(sec=5, nanosec=0)
 
-            text.pose.position.x = -centroid[0]
-            text.pose.position.y = centroid[1]
-            text.pose.position.z = 0.3  # above sphere
+            text.pose.position.x = -centroid[0] - self.robot_position.pose.pose.position.x
+            text.pose.position.y = centroid[1] + self.robot_position.pose.pose.position.y
+            text.pose.position.z = 0.3
+
+            text.pose.orientation.x = self.robot_position.pose.pose.orientation.x
+            text.pose.orientation.y = self.robot_position.pose.pose.orientation.y
+            text.pose.orientation.z = self.robot_position.pose.pose.orientation.z
+            text.pose.orientation.w = self.robot_position.pose.pose.orientation.w
 
             text.scale.z = 0.20  # text height in meters
 
@@ -198,6 +257,9 @@ class SimpleFollower(Node):
     
     # - subscriber to /scan callabck
     def scan_subscriber_callabck(self, msg):
+        # - set of ID's that have been matched, used to prune old objects and prevent duplication
+        self.matched_ids = set()
+
         # - capture the distances and angles
         distances = np.array(msg.ranges)
         angles_rad = msg.angle_min + np.arange(len(distances)) * msg.angle_increment
@@ -219,9 +281,33 @@ class SimpleFollower(Node):
         y_m = distances * np.sin(angles_rad)
         points = np.column_stack((x_m, y_m))
 
+        # - holder for map frame points
+        map_points = np.empty((len(points), 2))
+
+        # - stole this transform implementation
+        for i in range(len(points)):
+            pt = PoseStamped()
+            pt.header.frame_id = "base_link"
+            pt.header.stamp = self.get_clock().now().to_msg()
+
+            pt.pose.position.x = float(points[i][0])
+            pt.pose.position.y = float(points[i][1])
+            pt.pose.position.z = 0.0
+
+            pt.pose.orientation.w = 1.0
+
+            map_pt = self.tf_buffer.transform(
+                pt,
+                "map",
+                timeout=rclpy.duration.Duration(seconds=0.1)
+            )
+
+            map_points[i, 0] = map_pt.pose.position.x
+            map_points[i, 1] = map_pt.pose.position.y
+
         # - use DBScan to sort them into objects
         #self.get_logger().info('Running DBScan on points')
-        db = DBSCAN(eps=0.12, min_samples=5).fit(points)
+        db = DBSCAN(eps=0.12, min_samples=5).fit(map_points)
         labels = db.labels_
 
         # - extract a centroid for each object
@@ -239,6 +325,7 @@ class SimpleFollower(Node):
             # - first time, adding all of the centroids
             if self.first:
                 self.object_holder[self.num_objects] = centroid
+                self.missed_frames[self.num_objects] = 0
                 self.previous_position_holder[self.num_objects] = centroid
                 self.average_dispacment_holder[self.num_objects] = 0.0
                 self.is_moving_holder[self.num_objects] = False
@@ -252,6 +339,10 @@ class SimpleFollower(Node):
 
                 # - determining min distance
                 for key, value in self.object_holder.items():
+
+                    if key in self.matched_ids:
+                        continue
+
                     new_distance = math.sqrt((value[0]-centroid[0])**2 + (value[1]-centroid[1])**2)
 
                     if new_distance < best_distance:
@@ -261,16 +352,20 @@ class SimpleFollower(Node):
                 # - adding a new item
                 if new_key == -1 or best_distance >= self.max_dist:
                     self.object_holder[self.num_objects] = centroid
+                    self.missed_frames[self.num_objects] = 0
                     self.previous_position_holder[self.num_objects] = centroid
                     self.average_dispacment_holder[self.num_objects] = 0.0
                     self.is_moving_holder[self.num_objects] = False
                     self.get_logger().info(f'New point (runtime): point number {self.num_objects} at {centroid}')
                     self.num_objects += 1
+                    self.matched_ids.add(new_key)
                 
                 # - updating an old item
                 else:
                     self.previous_position_holder[new_key] = self.object_holder[new_key]
                     self.object_holder[new_key] = centroid
+                    self.missed_frames[new_key] = 0
+                    self.matched_ids.add(new_key)
 
                     # - computing the distance between the previous point and the current one
                     x_disp = self.object_holder[new_key][0] - self.previous_position_holder[new_key][0]
@@ -302,7 +397,7 @@ class SimpleFollower(Node):
         # - if only one thing is moving, follow it!
         if true_count == 1:
             self.get_logger().info(f'object {moving_object_index} is moving!')
-            self.publish_destination_pose(self.object_holder[moving_object_index][0],self.object_holder[moving_object_index][1])
+            #self.publish_destination_pose(-self.object_holder[moving_object_index][0],self.object_holder[moving_object_index][1])
 
         # - else, freeze and print an error!
         elif true_count > 1:
@@ -313,7 +408,6 @@ class SimpleFollower(Node):
         # - TODO: compensate for robot moving such that when it moves it doesnt think all of the objects are moving
 
         
-
 
     
 # - main
