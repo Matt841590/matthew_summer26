@@ -3,7 +3,7 @@
 # SOURCES
 ## Makerspet (Everything outside of the folder matthew_summer26)
  - https://github.com/kaiaai/kaiaai
- - - this contains the code needed to connect to the robot and several cool pre-built implementations to explore
+   - this contains the code needed to connect to the robot and several cool pre-built implementations to explore
 
  - https://makerspet.com/product/arduino-ros2-self-driving-robot-120mm-build-pack/
  - - This is where you get the hardware and printed parts/STL files
