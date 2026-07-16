@@ -18,6 +18,7 @@ from sklearn.cluster import DBSCAN
 from sensor_msgs.msg import LaserScan
 # - tf stuff to chnage frames
 import tf2_ros
+from tf2_ros import TransformException
 from geometry_msgs.msg import TransformStamped
 from geometry_msgs.msg import PoseStamped
 
@@ -215,8 +216,8 @@ class SimpleFollower(Node):
             # Lifetime of 3 seconds
             text.lifetime = Duration(sec=5, nanosec=0)
 
-            text.pose.position.x = -centroid[0] - self.robot_position.pose.pose.position.x
-            text.pose.position.y = centroid[1] + self.robot_position.pose.pose.position.y
+            text.pose.position.x = centroid[0] #- self.robot_position.pose.pose.position.x
+            text.pose.position.y = -centroid[1] #+ self.robot_position.pose.pose.position.y
             text.pose.position.z = 0.3
 
             text.pose.orientation.x = self.robot_position.pose.pose.orientation.x
@@ -257,6 +258,18 @@ class SimpleFollower(Node):
     
     # - subscriber to /scan callabck
     def scan_subscriber_callabck(self, msg):
+
+        # - tf stuff
+        try:
+            self.transform = self.tf_buffer.lookup_transform(
+                "map",         # target frame
+                "base_scan",   # source frame
+                rclpy.time.Time()
+            )
+        except TransformException as ex:
+            self.get_logger().warn(f"Couldn't get transform: {ex}")
+            return
+
         # - set of ID's that have been matched, used to prune old objects and prevent duplication
         self.matched_ids = set()
 
@@ -265,7 +278,7 @@ class SimpleFollower(Node):
         angles_rad = msg.angle_min + np.arange(len(distances)) * msg.angle_increment
 
         # - filter out points that are too far
-        max_tracking_distance = 0.75 
+        max_tracking_distance = 0.50 
         valid_mask = (distances > msg.range_min) & (distances < max_tracking_distance) & np.isfinite(distances)
         
         distances = distances[valid_mask]
@@ -284,26 +297,35 @@ class SimpleFollower(Node):
         # - holder for map frame points
         map_points = np.empty((len(points), 2))
 
+        # - extract transform
+        tx = self.transform.transform.translation.x
+        ty = self.transform.transform.translation.y
+
+        qx = self.transform.transform.rotation.x
+        qy = self.transform.transform.rotation.y
+        qz = self.transform.transform.rotation.z
+        qw = self.transform.transform.rotation.w
+
+        yaw = math.atan2(
+            2.0 * (qw * qz + qx * qy),
+            1.0 - 2.0 * (qy * qy + qz * qz)
+        )
+
         # - stole this transform implementation
         for i in range(len(points)):
-            pt = PoseStamped()
-            pt.header.frame_id = "base_link"
-            pt.header.stamp = self.get_clock().now().to_msg()
+            # pt = PoseStamped()
+            # pt.header.frame_id = "map"
+            # pt.header.stamp = self.get_clock().now().to_msg()
 
-            pt.pose.position.x = float(points[i][0])
-            pt.pose.position.y = float(points[i][1])
-            pt.pose.position.z = 0.0
+            x_base = points[i][0]
+            y_base = points[i][1]
 
-            pt.pose.orientation.w = 1.0
+            x_map = tx + math.cos(yaw) * x_base - math.sin(yaw) * x_base
+            y_map = ty + math.sin(yaw) * x_base + math.cos(yaw) * y_base
 
-            map_pt = self.tf_buffer.transform(
-                pt,
-                "map",
-                timeout=rclpy.duration.Duration(seconds=0.1)
-            )
+            map_points[i] = [x_map, y_map]
 
-            map_points[i, 0] = map_pt.pose.position.x
-            map_points[i, 1] = map_pt.pose.position.y
+            
 
         # - use DBScan to sort them into objects
         #self.get_logger().info('Running DBScan on points')
@@ -317,7 +339,7 @@ class SimpleFollower(Node):
             # - ignoring noise
             if label == -1:
                 continue
-            cluster = points[labels == label]
+            cluster = map_points[labels == label]
             current_centroids.append(cluster.mean(axis=0))
 
         # - compare centroids trying to find the closest one
@@ -397,7 +419,36 @@ class SimpleFollower(Node):
         # - if only one thing is moving, follow it!
         if true_count == 1:
             self.get_logger().info(f'object {moving_object_index} is moving!')
-            #self.publish_destination_pose(-self.object_holder[moving_object_index][0],self.object_holder[moving_object_index][1])
+
+            # - undoing tf so that it is back in robot frame agin
+            try:
+                self.transform = self.tf_buffer.lookup_transform(
+                    "base_link",         # target frame
+                    "map",   # source frame
+                    rclpy.time.Time()
+                )
+            except TransformException as ex:
+                self.get_logger().warn(f"Couldn't get transform: {ex}")
+                return
+                
+            # - extract transform
+            tx = self.transform.transform.translation.x
+            ty = self.transform.transform.translation.y
+
+            qx = self.transform.transform.rotation.x
+            qy = self.transform.transform.rotation.y
+            qz = self.transform.transform.rotation.z
+            qw = self.transform.transform.rotation.w
+
+            yaw = math.atan2(
+                2.0 * (qw * qz + qx * qy),
+                1.0 - 2.0 * (qy * qy + qz * qz)
+            )
+
+            x_dest = tx + math.cos(yaw) * self.object_holder[moving_object_index][0] - math.sin(yaw) * self.object_holder[moving_object_index][0]
+            y_dest = ty + math.sin(yaw) * self.object_holder[moving_object_index][1] + math.cos(yaw) * self.object_holder[moving_object_index][1]
+
+            self.publish_destination_pose(x_dest,-y_dest)
 
         # - else, freeze and print an error!
         elif true_count > 1:
@@ -416,7 +467,7 @@ def main(args=None):
     simple_follower = SimpleFollower()
 
     # - publishing initial pose
-    simple_follower.publish_inital_pose(-0.1110, 0.021468)
+    simple_follower.publish_inital_pose(0.0, 0.0)
 
     # - spinning 
     rclpy.spin(simple_follower)
