@@ -61,7 +61,7 @@ Docker can be installed at https://docs.docker.com/engine/install/
   - In T2: ros2 launch nav2_bringup navigation_launch.py params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
     - This starts the standard Nav2 navigation stack, but with a custom paramaters file configured for the specifics of the robot I was using
     - TODO: Do I actually need this?
-  - In T3: ros2 launch slam_toolbox online_async_launch.py
+  - In T3: ros2 launch slam_toolbox online_async_launch.py use_sim_time:=false
     - This starts slam_toolbox which allows the robot to both create a map, determine its location inisde the map, and populates part of the TF tree
   - In T4: ros2 run rviz2 rviz2 -d /opt/ros/iron/share/nav2_bringup/rviz/nav2_default_view.rviz
     - This starts the default viewer of Rviz whoch is handy to see the map that the robot is making while it makes it
@@ -69,7 +69,14 @@ Docker can be installed at https://docs.docker.com/engine/install/
   - In T5: ros2 run matthew_teleop teleop
     - This starts the telop used to drive the robot around so it can build the map
 
+  OR 
+
+  - In T5: Ros2 run teleop_twist_keyboard teleop_twist_keyboard
+    - This is the ros2 provided teleop script for keyboards
+
 To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
+
+**Note: for some reason Ros2 REALLY does not like when you move the map around, so I woudld recommend running this command from the folder that you want your maps to end up in (for my packages, it is matthew_summer26/maps)**
 
 ## Autonomous Mapping + Exploration
 - this project is a basic autonomous mapping tutorial using Nav2 and slam
@@ -102,6 +109,8 @@ To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
   - In T5: ros2 run matthew_navigation loop
     - This is my custom-made "follow a set of arbitrary points that arbitrarily make a loop" utility
     - Useful for patroling an area on a timer or something similar
+    - to get abother point: ros2 topic echo /amcl_pose --once
+    - or ros2 run tf2_ros tf2_echo map base_link
 
 ## Movement Detection via Lidar
 **This project is not yet complete and is therefore subject to change**
@@ -116,3 +125,20 @@ To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
     - However, when the robot attempts to follow a moving object, the map gets warped and the location of the objects drifts heavily as a result
     - TODO: try making the "close enough" radius really big?
     - TODO: try smoothing the Lidar to be less noisy?
+
+## Misc notes
+VSCode was using a bunch of CPU because I didnt tell it to ignore some stuff, done by putting
+
+"search.exclude": {
+        "**/build": true,
+        "**/install": true,
+        "**/log": true,
+        "**/.git": true
+    },
+    "files.exclude": {
+        "**/build": true,
+        "**/install": true,
+        "**/log": true
+    }, 
+
+in your vscode settings.json. This prevents VSCode from trying to understand / unpack all your build, install, log files whoch was putting me at ~90% cpu usage which was causing timing problems
