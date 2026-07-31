@@ -448,7 +448,8 @@ class SimpleFollower(Node):
             x_dest = tx + math.cos(yaw) * self.object_holder[moving_object_index][0] - math.sin(yaw) * self.object_holder[moving_object_index][0]
             y_dest = ty + math.sin(yaw) * self.object_holder[moving_object_index][1] + math.cos(yaw) * self.object_holder[moving_object_index][1]
 
-            self.publish_destination_pose(x_dest,-y_dest)
+            #TODO: re-enable this
+            #self.publish_destination_pose(x_dest,-y_dest)
 
         # - else, freeze and print an error!
         elif true_count > 1:

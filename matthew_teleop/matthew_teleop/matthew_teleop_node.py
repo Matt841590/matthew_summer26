@@ -4,7 +4,6 @@ Purpose: A node meant to provide basic teleop functionality
 """
 # - imports
 import termios
-import os
 import tty
 import sys
 import rclpy
@@ -22,7 +21,7 @@ class TelopNode(Node):
         self.twist_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
 
         # - timer for the publisher
-        self.timer_period = 0.2 
+        self.timer_period = 0.1
         self.twist_timer = self.create_timer(self.timer_period, self.timer_callback)
 
         # - memeber variables

@@ -142,3 +142,6 @@ VSCode was using a bunch of CPU because I didnt tell it to ignore some stuff, do
     }, 
 
 in your vscode settings.json. This prevents VSCode from trying to understand / unpack all your build, install, log files whoch was putting me at ~90% cpu usage which was causing timing problems
+
+I also had to make some changes to robot.urdf.xacro for the makerspet_mini to reflect the true wheelbase of my specific robot. this lives in ros_ws/src
+
