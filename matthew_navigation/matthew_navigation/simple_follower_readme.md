@@ -13,6 +13,8 @@
     - TODO: try making the "close enough" radius really big?
     - TODO: try smoothing the Lidar to be less noisy?
 
+https://github.com/user-attachments/assets/8910f74d-8a3d-404c-8a24-de19ec1fc713
+
 ## Project vision
 - The end goal of this is to have the robot track and follow movement in its immediate environment
 - The movement tracking part is currently implemented, but the map quickly degenerates when the robot starts moving
