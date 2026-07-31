@@ -16,6 +16,8 @@
 
   - In T4: Ros2 run teleop_twist_keyboard teleop_twist_keyboard
     - This is the ros2 provided teleop script for keyboards
+   
+https://github.com/user-attachments/assets/609cb32c-2d5c-47ae-aed9-5b04bb33fabc
 
 This project is powered by two excellent, pre-extant software packages as described below. 
 
