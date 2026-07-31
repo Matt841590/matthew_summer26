@@ -1,17 +1,13 @@
 ## Movement Detection via Lidar
 (This section was taken directly from the main README)
 **This project is not yet complete and is therefore subject to change**
-- This project's end goal is to enable a robot with only a lidar to track movment in its environment and follow it at a short distance
 - As it stands, this project is a Ros2-powered program that turns /scan data into a list of "seen objects" and can determine when one or multiple are moving
 - Open 5 terminals
   - T1 - T4 will be identical to Autonomous GoTO Pose (see above)
     - I open and provide all of these utilities so that the TF tree is complete and the final goal isnt missing any infastructure
   - In T5: cd ros_ws/src/matthew_summer26
   - In T5: ros2 run matthew_navigation follow
-    - This utility will, as of 7/16/2026 allow a robot recieving /scan data to track moving objects
-    - However, when the robot attempts to follow a moving object, the map gets warped and the location of the objects drifts heavily as a result
-    - TODO: try making the "close enough" radius really big?
-    - TODO: try smoothing the Lidar to be less noisy?
+
 
 ## Project vision
 - The end goal of this is to have the robot track and follow movement in its immediate environment

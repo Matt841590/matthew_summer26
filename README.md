@@ -58,20 +58,17 @@ Docker can be installed at https://docs.docker.com/engine/install/
 - open 5 terminals (refered to as T1 - T5)
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
     - Allows your machine to communicate witht the robot and populates part of the TF tree
-  - In T2: ros2 launch nav2_bringup navigation_launch.py params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
-    - This starts the standard Nav2 navigation stack, but with a custom paramaters file configured for the specifics of the robot I was using
-    - TODO: Do I actually need this?
-  - In T3: ros2 launch slam_toolbox online_async_launch.py use_sim_time:=false
+  - In T2: ros2 launch slam_toolbox online_async_launch.py use_sim_time:=false
     - This starts slam_toolbox which allows the robot to both create a map, determine its location inisde the map, and populates part of the TF tree
-  - In T4: ros2 run rviz2 rviz2 -d /opt/ros/iron/share/nav2_bringup/rviz/nav2_default_view.rviz
+  - In T3: ros2 run rviz2 rviz2 -d /opt/ros/iron/share/nav2_bringup/rviz/nav2_default_view.rviz
     - This starts the default viewer of Rviz whoch is handy to see the map that the robot is making while it makes it
-  - In T5: cd /ros_ws/src/matthew_summer26
-  - In T5: ros2 run matthew_teleop teleop
+  - In T4: cd /ros_ws/src/matthew_summer26
+  - In T4: ros2 run matthew_teleop teleop
     - This starts the telop used to drive the robot around so it can build the map
 
   OR 
 
-  - In T5: Ros2 run teleop_twist_keyboard teleop_twist_keyboard
+  - In T4: Ros2 run teleop_twist_keyboard teleop_twist_keyboard
     - This is the ros2 provided teleop script for keyboards
 
 To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
@@ -81,10 +78,12 @@ To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
 ## Autonomous Mapping + Exploration
 - this project is a basic autonomous mapping tutorial using Nav2 and slam
 - open 5 terminals
-  - T1 - T4 will be identical to Basic mapping (see above)
+  - T1 - T3 will be identical to Basic mapping (see above)
+  - In T4: ros2 launch nav2_bringup navigation_launch.py params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
+    - This starts the standard Nav2 navigation stack, but with a custom paramaters file configured for the specifics of the robot I was using
   - In T5: cd ros_ws/src/matthew_summer26/frontier_exploration_ros2_iron
   - In T5: ros2 launch frontier_exploration_ros2 frontier_explorer.launch.py
-    - This program autonomoulsy assigns goals for the robot to move to based on the knowledge of the map it currently has 
+    - This program autonomoulsy assigns goals for the robot to move to based on the knowledge of the map it currently has
 
 ## Autonomous Goto Pose
 **This project assumes a pre-built map that lives in ros_ws/src/matthew_summer26/maps**
