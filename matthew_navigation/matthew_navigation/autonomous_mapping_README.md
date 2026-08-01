@@ -13,6 +13,9 @@
     - In T5: ros2 launch frontier_exploration_ros2 frontier_explorer.launch.py
         - This program autonomoulsy assigns goals for the robot to move to based on the knowledge of the map it currently has
 
+https://github.com/user-attachments/assets/24357b84-f305-480d-9f33-39252bfb0626
+
+
 This project relies on three excellent pieces of software:
 - Nav2: Nav2 is the SOTA autonomous navigation package for Ros2. It allows a robot, when properly localized, to navigate from point A to point B in an efficient and direct manner. 
 
