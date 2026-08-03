@@ -18,7 +18,7 @@
    
 https://github.com/user-attachments/assets/609cb32c-2d5c-47ae-aed9-5b04bb33fabc
 
-This project is powered by two excellent, pre-extant software packages as described below. 
+This project is powered by two excellent, pre-extant software packages as described below:
 
 - Slam_toolbox: Slam_toolbox is the SOTA industry-standard "Simultaneous Localization And Mapping" package for Ros2. In this project it provides vital information to the robot, both creating the map itself, and determining where the robot is in the map at any given time
 
