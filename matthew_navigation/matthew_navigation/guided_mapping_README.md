@@ -1,6 +1,7 @@
 ## Basic Mapping
 
-<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/9eec6727-79fc-4f65-8ef8-5cd2a63fad71" />
+<img width="2880" height="2160" alt="image" src="https://github.com/user-attachments/assets/4898fbc1-966c-4fa2-82e7-cc47618a3d95" />
+
 
 
 (This section is taken from the main README)
