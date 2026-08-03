@@ -8,8 +8,7 @@
     - This starts slam_toolbox which allows the robot to both create a map, determine its location inisde the map, and populates part of the TF tree
   - In T3: ros2 run rviz2 rviz2 -d /opt/ros/iron/share/nav2_bringup/rviz/nav2_default_view.rviz
     - This starts the default viewer of Rviz whoch is handy to see the map that the robot is making while it makes it
-  - In T4: cd /ros_ws/src/matthew_summer26
-  - In T4: ros2 run matthew_teleop teleop
+  - In T4: cd /ros_ws/src/matthew_summer26, then In T4: ros2 run matthew_teleop teleop
     - This starts the telop used to drive the robot around so it can build the map
 
   OR 
