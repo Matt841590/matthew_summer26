@@ -1,6 +1,7 @@
 ## Teleop
 
-<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/7f06c010-22e4-4b72-be43-a9ce49f84d67" />
+<img width="2880" height="2160" alt="image" src="https://github.com/user-attachments/assets/0ea40ae7-1913-4caf-a088-64c1fd0e0c67" />
+
 
 
 (This section was taken directly from the main README)
