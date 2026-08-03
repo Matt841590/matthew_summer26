@@ -1,7 +1,7 @@
 ## Basic Mapping
 (This section is taken from the main README)
 - This project is a basic manual mapping tutorial, using Nav2 and SLAM to create a map
-- open 5 terminals (refered to as T1 - T5)
+- Open five terminals (refered to as T1 - T5)
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
     - Allows your machine to communicate witht the robot and populates part of the TF tree
   - In T2: ros2 launch slam_toolbox online_async_launch.py use_sim_time:=false
