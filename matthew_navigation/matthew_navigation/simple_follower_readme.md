@@ -1,6 +1,6 @@
 ## Movement Detection via Lidar
 
-<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/ca7a9c6e-6e2d-4fe3-ba21-e919996a2371" />
+<img width="2880" height="2160" alt="image" src="https://github.com/user-attachments/assets/25e6ae32-7d7b-4835-9a11-8ff867a00b16" />
 
 
 (This section was taken directly from the main README)
