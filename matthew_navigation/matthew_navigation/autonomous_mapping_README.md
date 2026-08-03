@@ -1,4 +1,8 @@
 ## Autonomous Mapping + Exploration
+
+<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/2313d5cb-619a-402c-9642-fa32b81f5395" />
+
+
 (This section was taken from the main README)
     - open five terminals (refered to as T1 - T5)
     - In T1: ros2 launch kaiaai_bringup physical.launch.py
@@ -12,6 +16,12 @@
     - In T5: cd ros_ws/src/matthew_summer26/frontier_exploration_ros2_iron
     - In T5: ros2 launch frontier_exploration_ros2 frontier_explorer.launch.py
         - This program autonomoulsy assigns goals for the robot to move to based on the knowledge of the map it currently has
+
+<img width="1978" height="1086" alt="image" src="https://github.com/user-attachments/assets/253f83bb-7f66-4199-ab14-fec0a8c60f62" />
+
+
+https://github.com/user-attachments/assets/24357b84-f305-480d-9f33-39252bfb0626
+
 
 This project relies on three excellent pieces of software:
 - Nav2: Nav2 is the SOTA autonomous navigation package for Ros2. It allows a robot, when properly localized, to navigate from point A to point B in an efficient and direct manner. 

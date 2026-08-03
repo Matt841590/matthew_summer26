@@ -1,4 +1,8 @@
 ## Basic Mapping
+
+<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/9eec6727-79fc-4f65-8ef8-5cd2a63fad71" />
+
+
 (This section is taken from the main README)
 - This project is a basic manual mapping tutorial, using Nav2 and SLAM to create a map
 - open four terminals (refered to as T1 - T4)
@@ -8,8 +12,7 @@
     - This starts slam_toolbox which allows the robot to both create a map, determine its location inisde the map, and populates part of the TF tree
   - In T3: ros2 run rviz2 rviz2 -d /opt/ros/iron/share/nav2_bringup/rviz/nav2_default_view.rviz
     - This starts the default viewer of Rviz whoch is handy to see the map that the robot is making while it makes it
-  - In T4: cd /ros_ws/src/matthew_summer26
-  - In T4: ros2 run matthew_teleop teleop
+  - In T4: cd /ros_ws/src/matthew_summer26, then In T4: ros2 run matthew_teleop teleop
     - This starts the telop used to drive the robot around so it can build the map
 
   OR 
@@ -17,9 +20,12 @@
   - In T4: Ros2 run teleop_twist_keyboard teleop_twist_keyboard
     - This is the ros2 provided teleop script for keyboards
    
+<img width="1809" height="1112" alt="image" src="https://github.com/user-attachments/assets/d7a390a8-7898-4d29-8ed2-556f4265944e" />
+
+   
 https://github.com/user-attachments/assets/609cb32c-2d5c-47ae-aed9-5b04bb33fabc
 
-This project is powered by two excellent, pre-extant software packages as described below. 
+This project is powered by two excellent, pre-extant software packages as described below:
 
 - Slam_toolbox: Slam_toolbox is the SOTA industry-standard "Simultaneous Localization And Mapping" package for Ros2. In this project it provides vital information to the robot, both creating the map itself, and determining where the robot is in the map at any given time
 
