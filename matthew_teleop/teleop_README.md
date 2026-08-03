@@ -8,8 +8,8 @@
 
 ## Function Definitions
 - TelopNode.__init__()
-    - This is the function that gets called when you create a new teleop node object
-    - This function is where you go to change:
+    - This is the function that creates a new Telop_Node object
+    - This function allows the user to change:
         - How often to publish new directions to the robot
         - Maximum speed that the robot can move
         - The starting speed the robot will have
@@ -22,8 +22,8 @@
     - This function runs over and over again based on the frequency specified in __init__
     - This function is responsible for publishing current state information to the user in an easy to read way
     - This funciton recieves the pressed keys from get_key, and is thereofre responsible for:
-        - chnaging the linear and angular speed of the robot
-        - initiating an immediate emergency stop when instructed by the user
+        - Changing the linear and angular speed of the robot
+        - Initiating an immediate emergency stop when instructed by the user
 
 - TelopNode.main()
     - This function is the entry point where the ndoe is created and started
