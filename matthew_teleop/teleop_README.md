@@ -5,8 +5,9 @@
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
   - In T2: cd /ros_ws/src/matthew_summer26
   - In T2: ros2 run matthew_teleop teleop
- 
-<img width="986" height="653" alt="image" src="https://github.com/user-attachments/assets/5faad3fc-5adf-40db-b39f-0f24a058d80a" />
+
+<img width="975" height="664" alt="image" src="https://github.com/user-attachments/assets/49c71288-e668-42c8-9b2e-3d1434e3e7da" />
+
 
 ## Function Definitions
 - TeleopNode.__init__()
