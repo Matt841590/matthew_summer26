@@ -8,7 +8,7 @@
 - As it stands, this project is a Ros2-powered program that turns /scan data into a list of "seen objects" and can determine when one or multiple are moving
 - Open 5 terminals
   - T1 - T4 will be identical to Autonomous GoTO Pose (see above)
-    - I open and provide all of these utilities so that the TF tree is complete and the final goal isnt missing any infastructure
+    - These programs are opened to provide A complete TF tree and the user interface
   - In T5: cd ros_ws/src/matthew_summer26
   - In T5: ros2 run matthew_navigation follow
 
