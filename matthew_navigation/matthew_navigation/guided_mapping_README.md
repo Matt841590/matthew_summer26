@@ -1,4 +1,8 @@
 ## Basic Mapping
+
+<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/9eec6727-79fc-4f65-8ef8-5cd2a63fad71" />
+
+
 (This section is taken from the main README)
 - This project is a basic manual mapping tutorial, using Nav2 and SLAM to create a map
 - Open five terminals (refered to as T1 - T5)
