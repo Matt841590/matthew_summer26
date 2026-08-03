@@ -1,6 +1,10 @@
 ## Movement Detection via Lidar
 (This section was taken directly from the main README)
+
+
 **This project is not yet complete and is therefore subject to change.**
+
+
 - As it stands, this project is a Ros2-powered program that turns /scan data into a list of "seen objects" and can determine when one or multiple are moving
 - Open 5 terminals
   - T1 - T4 will be identical to Autonomous GoTO Pose (see above)
