@@ -13,6 +13,9 @@
     - In T5: ros2 launch frontier_exploration_ros2 frontier_explorer.launch.py
         - This program autonomoulsy assigns goals for the robot to move to based on the knowledge of the map it currently has
 
+<img width="1978" height="1086" alt="image" src="https://github.com/user-attachments/assets/253f83bb-7f66-4199-ab14-fec0a8c60f62" />
+
+
 https://github.com/user-attachments/assets/24357b84-f305-480d-9f33-39252bfb0626
 
 
