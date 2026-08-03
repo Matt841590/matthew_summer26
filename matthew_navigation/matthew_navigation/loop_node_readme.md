@@ -1,8 +1,11 @@
 ## Autonomous Goto Pose
 (This section is taken directly from the projects main README)
 **This project assumes a pre-built map that lives in ros_ws/src/matthew_summer26/maps**
+
+**This project is not yet complete and is therefore subject to change**
+
 - This project is a patrolling utility, making your robot autonomoulsy navigate a set of points in a loop in a pre-built map
-- open 5 terminals
+- open five terminals
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
     - this is the robot's bringup that lets it talk with your computer
   - In T2: ros2 launch nav2_bringup localization_launch.py \

@@ -47,7 +47,7 @@ Docker can be installed at https://docs.docker.com/engine/install/
 # MY PROJECTS
 ## Teleop
 - This project was a simple, easy-to-use teleop utility built to support the needs of my other projects
-- open 2 terminals (herefater refered to as T1 and T2)
+- open two terminals (herefater refered to as T1 and T2)
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
   - In T2: cd /ros_ws/src/matthew_summer26
   - In T2: ros2 run matthew_teleop teleop
@@ -55,7 +55,7 @@ Docker can be installed at https://docs.docker.com/engine/install/
 
 ## Basic Mapping
 - This project is a basic manual mapping tutorial, using Nav2 and SLAM to create a map
-- open 5 terminals (refered to as T1 - T5)
+- open four terminals (refered to as T1 - T4)
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
     - Allows your machine to communicate witht the robot and populates part of the TF tree
   - In T2: ros2 launch slam_toolbox online_async_launch.py use_sim_time:=false
@@ -77,7 +77,7 @@ To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
 
 ## Autonomous Mapping + Exploration
 - this project is a basic autonomous mapping tutorial using Nav2 and slam
-- open 5 terminals
+- open five terminals
   - T1 - T3 will be identical to Basic mapping (see above)
   - In T4: ros2 launch nav2_bringup navigation_launch.py params_file:=/ros_ws/src/matthew_summer26/nav2_config.yaml
     - This starts the standard Nav2 navigation stack, but with a custom paramaters file configured for the specifics of the robot I was using
@@ -87,8 +87,11 @@ To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
 
 ## Autonomous Goto Pose
 **This project assumes a pre-built map that lives in ros_ws/src/matthew_summer26/maps**
+
+**This project is not yet complete and is therefore subject to change**
+
 - This project is a patrolling utility, making your robot autonomoulsy navigate a set of points in a loop in a pre-built map
-- open 5 terminals
+- open five terminals
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
     - this is the robot's bringup that lets it talk with your computer
   - In T2: ros2 launch nav2_bringup localization_launch.py \
@@ -115,15 +118,13 @@ To save your map, "ros2 run nav2_map_server map_saver_cli -f my_map"
 **This project is not yet complete and is therefore subject to change**
 - This project's end goal is to enable a robot with only a lidar to track movment in its environment and follow it at a short distance
 - As it stands, this project is a Ros2-powered program that turns /scan data into a list of "seen objects" and can determine when one or multiple are moving
-- Open 5 terminals
+- Open five terminals
   - T1 - T4 will be identical to Autonomous Goto Pose (see above)
     - I open and provide all of these utilities so that the TF tree is complete and the final goal isnt missing any infastructure
   - In T5: cd ros_ws/src/matthew_summer26
   - In T5: ros2 run matthew_navigation follow
     - This utility will, as of 7/16/2026 allow a robot recieving /scan data to track moving objects
     - However, when the robot attempts to follow a moving object, the map gets warped and the location of the objects drifts heavily as a result
-    - TODO: try making the "close enough" radius really big?
-    - TODO: try smoothing the Lidar to be less noisy?
 
 ## Misc notes
 VSCode was using a bunch of CPU because I didnt tell it to ignore some stuff, done by putting

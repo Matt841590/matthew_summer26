@@ -11,7 +11,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
 # - node class
-class TelopNode(Node):
+class Teleop Node(Node):
     # - init
     def __init__(self):
         # - recursive init
@@ -121,7 +121,7 @@ class TelopNode(Node):
 def main(args=None):
     # - build node
     rclpy.init(args=args)
-    teleop_node = TelopNode()
+    teleop_node = Teleop Node()
     
     # - spin node
     rclpy.spin(teleop_node)

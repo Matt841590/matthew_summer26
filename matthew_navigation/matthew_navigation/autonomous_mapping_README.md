@@ -1,6 +1,6 @@
 ## Autonomous Mapping + Exploration
 (This section was taken from the main README)
-    - open 5 terminals (refered to as T1 - T5)
+    - open five terminals (refered to as T1 - T5)
     - In T1: ros2 launch kaiaai_bringup physical.launch.py
         - Allows your machine to communicate witht the robot and populates part of the TF tree
     - In T2: ros2 launch slam_toolbox online_async_launch.py use_sim_time:=false
