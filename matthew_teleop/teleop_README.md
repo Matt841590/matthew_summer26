@@ -1,4 +1,8 @@
 ## Teleop
+
+<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/7f06c010-22e4-4b72-be43-a9ce49f84d67" />
+
+
 (This section was taken directly from the main README)
 - This project was a simple, easy-to-use teleop utility built to support the needs of my other projects
 - open 2 terminals (herefater refered to as T1 and T2)
