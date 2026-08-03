@@ -1,4 +1,8 @@
 ## Autonomous Mapping + Exploration
+
+<img width="2160" height="2962" alt="image" src="https://github.com/user-attachments/assets/2313d5cb-619a-402c-9642-fa32b81f5395" />
+
+
 (This section was taken from the main README)
     - open 5 terminals (refered to as T1 - T5)
     - In T1: ros2 launch kaiaai_bringup physical.launch.py
