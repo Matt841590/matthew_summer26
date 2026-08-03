@@ -7,7 +7,7 @@
 - This project is a patrolling utility, making your robot autonomoulsy navigate a set of points in a loop in a pre-built map
 - open five terminals
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
-    - this is the robot's bringup that lets it talk with your computer
+    - This is the robot's bringup that lets it talk with your computer
   - In T2: ros2 launch nav2_bringup localization_launch.py \
     map:=/ros_ws/src/matthew_summer26/maps/baseline_map.yaml \
     use_sim_time:=false \
@@ -25,8 +25,8 @@
   - In T5: ros2 run matthew_navigation loop
     - This is my custom-made "follow a set of arbitrary points that arbitrarily make a loop" utility
     - Useful for patroling an area on a timer or something similar
-    - to get abother point: ros2 topic echo /amcl_pose --once
-    - or ros2 run tf2_ros tf2_echo map base_link
+    - To get abother point: ros2 topic echo /amcl_pose --once
+    - Or ros2 run tf2_ros tf2_echo map base_link
 
 ## Function Descriptions
 - LoopPublisher.init()

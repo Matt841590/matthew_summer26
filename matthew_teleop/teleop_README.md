@@ -5,7 +5,7 @@
 
 (This section was taken directly from the main README)
 - This project was a simple, easy-to-use teleop utility built to support the needs of my other projects
-- open two terminals (herefater refered to as T1 and T2)
+- Open two terminals (herefater refered to as T1 and T2)
   - In T1: ros2 launch kaiaai_bringup physical.launch.py
   - In T2: cd /ros_ws/src/matthew_summer26
   - In T2: ros2 run matthew_teleop teleop
